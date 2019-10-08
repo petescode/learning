@@ -9,11 +9,7 @@ Development:
 - FIPS enabled/disabled? Affects which algorithms will work
 - First search $env:USERPROFILE, then C:\ drive, then other drives?
     Search algorithm? Needs to be as speedy as possible
-
-- Turn C:\Users into a variable so we can match that with $file after selection to have full path
 #>
-
-#[int]$selection=0
 
 function Get-Algorithm {
     # since we have already gotten the user used to selecting from an array of objects,
@@ -30,26 +26,26 @@ function Get-Algorithm {
         [PSCustomObject]@{Number = 4; Algorithm = "SHA384"},
         [PSCustomObject]@{Number = 5; Algorithm = "SHA512"}
     )
-    #Write-Host
     $available_algorithms | Out-Host
-    $selection = Read-Host "Choose an algorithm"
+
+    Do{
+        Try{ $selection = Read-Host "Choose an algorithm" }
+        Catch {} # do nothing, including with any error messages
+    } Until(($selection -gt 0) -and ($selection -le $available_algorithms.Length))
 
     # setting scope of this variable to "script" so it is useable outside this function
     $script:algorithm = $available_algorithms[$selection-1].Algorithm
-    #$algorithm | Out-Host
-    #$algorithm.gettype()
 }
 
 function Get-FIPSAlgorithm {
     
 }
 
-$search_path = "C:\Users" # default path unless changed later by user
 
 # this needs to be a function so we can call it later during switch
 Clear-Host
 [string]$name = Read-Host "Enter name of file to search for"
-$results = Get-ChildItem -Path $search_path -Recurse -File -Include "*$name*" -ErrorAction SilentlyContinue | Select FullName
+$results = Get-ChildItem -Path C:\Users -Recurse -File -Include "*$name*" -ErrorAction SilentlyContinue | Select FullName
 
 # this while loop only kicks in if there are no files found by the entered name at the default path
 while($NULL -eq $results){
@@ -84,6 +80,7 @@ while($NULL -eq $results){
         default{ $NULL -eq $results } # start the loop over if one of these options is not selected
     }
 }
+#$results | Out-Host
 
 # now make a list to choose from...because searching "debian" could return multiple debian ISOs
 $list=@()
@@ -102,7 +99,6 @@ $results | ForEach-Object{
 
 if($list.count -gt 1){ # multiple files match the search; we must choose which one
     $list | Select Number,Name | Out-Host
-    #$list | Select -ExcludeProperty FullName | Out-Host
     [int]$selection=0
     Do{
         Try{ $selection = Read-Host "Select a file" }
@@ -113,7 +109,6 @@ if($list.count -gt 1){ # multiple files match the search; we must choose which o
     $file = $list[$selection-1].FullName
 }
 else{ # only 1 result for search; this is our file
-    #$file = $list[0].Name
     $file_name = $list[0].Name
     $file = $list[0].FullName
 }
@@ -122,15 +117,31 @@ Clear-Host
 Write-Host "File selected is: " -NoNewline; Write-Host "$file_name" -ForegroundColor Cyan
 Get-Algorithm
 
-Get-FileHash -LiteralPath $file -Algorithm $algorithm
+Clear-Host
+Write-Host "Calculating $algorithm hash for $file_name..." -NoNewline
+$true_hash = Get-FileHash -LiteralPath $file -Algorithm $algorithm | Select -Expand Hash
+#$true_hash | Out-Host
+Write-Host "done"
+# waiting message...size of file?
 
+[string]$given_hash = Read-Host "`nEnter hash given to you"
+# now validate not empty, trim whitespace, etc
 
-#$true_hash
-#$given_hash
+# THIS IS NOT WORKING YET
+while($NULL -eq $given_hash){
+    Write-Warning "Null value entered! Try again"
+    [string]$given_hash = Read-Host "Enter hash given to you"
+}
 
-# need a menu for which algorithms to choose from
-# menu should be a function?
+[string]$given_hash = $given_hash.Trim()
+#$given_hash | Out-Host
 
-# try again if no file found
-
-# account for whitespace on either side of copy/paste $given_hash (eliminate it)
+# compare the hashes
+if($true_hash -eq $given_hash){
+    Write-Host "yay they match"
+    # something green here
+}
+else{ 
+    Write-Host "oh no they don't match"
+    # something red here
+}
