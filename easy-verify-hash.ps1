@@ -7,8 +7,6 @@ Notes:
 
 Development:
 - FIPS enabled/disabled? Affects which algorithms will work
-- First search $env:USERPROFILE, then C:\ drive, then other drives?
-    Search algorithm? Needs to be as speedy as possible
 #>
 
 function Get-Algorithm {
@@ -45,7 +43,8 @@ function Get-FIPSAlgorithm {
 # this needs to be a function so we can call it later during switch
 Clear-Host
 [string]$name = Read-Host "Enter name of file to search for"
-$results = Get-ChildItem -Path C:\Users -Recurse -File -Include "*$name*" -ErrorAction SilentlyContinue | Select FullName
+$results = Get-ChildItem -Path C:\Users -Recurse -File -Include "*$name*" -ErrorAction SilentlyContinue | Select Length,Name,FullName
+#$results | Out-Host
 
 # this while loop only kicks in if there are no files found by the entered name at the default path
 while($NULL -eq $results){
@@ -89,9 +88,9 @@ $results | ForEach-Object{
     $count++
     $object = New-Object System.Object
     $object | Add-Member -Type NoteProperty -Name "Number" -Value $count
-    #$object | Add-Member -Type NoteProperty -Name "Name" -Value $_.Name
     $object | Add-Member -Type NoteProperty -Name "Name" -Value $(Split-Path -Path $_.FullName -Leaf)
     $object | Add-Member -Type NoteProperty -Name "FullName" -Value $_.FullName
+    $object | Add-Member -Type NoteProperty -Name "Size" -Value $_.Length
     $list += $object
 }
 
@@ -107,11 +106,35 @@ if($list.count -gt 1){ # multiple files match the search; we must choose which o
 
     $file_name = $list[$selection-1].Name
     $file = $list[$selection-1].FullName
+    $file_size_in_bytes = $list[$selection-1].Size
 }
 else{ # only 1 result for search; this is our file
     $file_name = $list[0].Name
     $file = $list[0].FullName
+    $file_size_in_bytes = $list[$selection-1].Size
 }
+
+
+# convert file size from bytes to appropriate human-readable output
+if($file_size_in_bytes -ge 1073741824){
+    # this is at least 1GB in size
+    $file_size_in_gb = [math]::Round($($file_size_in_bytes / 1024 / 1024 / 1024),2)
+    Set-Variable -Name file_size -Value "$file_size_in_gb GB"
+}   
+elseif(($file_size_in_bytes -lt 1073741824) -and ($file_size_in_bytes -ge 1048576)){
+    # this should be in a MB
+    $file_size_in_mb = [math]::Round($($file_size_in_bytes / 1024 / 1024),2)
+    Set-Variable -Name file_size -Value "$file_size_in_mb MB"
+}
+elseif(($file_size_in_bytes -lt 1048576) -and ($file_size_in_bytes -ge 1024)){
+    # this should be in KB
+    $file_size_in_kb = [math]::Round($($file_size_in_bytes / 1024),2)
+    Set-Variable -Name file_size -Value "$file_size_in_kb KB"
+}
+elseif($file_size_in_bytes -lt 1024){
+    Set-Variable -Name file_size -Value "$file_size_in_bytes Bytes"
+}
+
 
 Clear-Host
 Write-Host "File selected is: " -NoNewline; Write-Host "$file_name" -ForegroundColor Cyan
@@ -120,12 +143,10 @@ Get-Algorithm
 Clear-Host
 Write-Host "Calculating $algorithm hash for $file_name..." -NoNewline
 $true_hash = Get-FileHash -LiteralPath $file -Algorithm $algorithm | Select -Expand Hash
-#$true_hash | Out-Host
 Write-Host "done"
 # waiting message...size of file?
 
 [string]$given_hash = Read-Host "`nEnter hash given to you"
-# now validate not empty, trim whitespace, etc
 
 # THIS IS NOT WORKING YET
 while($NULL -eq $given_hash){
@@ -134,14 +155,24 @@ while($NULL -eq $given_hash){
 }
 
 [string]$given_hash = $given_hash.Trim()
-#$given_hash | Out-Host
 
 # compare the hashes
 if($true_hash -eq $given_hash){
-    Write-Host "yay they match"
-    # something green here
+    Clear-Host
+    Write-Host "`nCheck SUCCEEDED: hashes match!" -ForegroundColor Green
+    Write-Host "______________________________________"
+    Write-Host "Computed hash: $true_hash"
+    Write-Host "Provided hash: $given_hash"
+    Write-Host "`n`nYour algorithm was: $algorithm"
+    Write-Host "Your file was: $file_name`n" 
 }
 else{ 
-    Write-Host "oh no they don't match"
-    # something red here
+    Clear-Host
+    Write-Host "`nCheck FAILED: hashes DO NOT match!" -ForegroundColor Red
+    Write-Host "______________________________________"
+    Write-Host "Computed hash: $true_hash"
+    Write-Host "Provided hash: $given_hash"
+    Write-Host "`n`nYour algorithm was: $algorithm"
+    Write-Host "Your file was: $file_name`n" 
 }
+#>
