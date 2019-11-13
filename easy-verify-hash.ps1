@@ -10,6 +10,7 @@ Development:
 - Still need to do testing on FIPS enabled machine
 - Write a warning when choosing broken algorithms?
 - Still need to see why file selection has "Number" on correct side but algoritm selection does not
+- When just pressing enter to search for file, script gets every file on system (need to make case for NULL)
 
 - Must work in contrained lanugage mode
     - This has required sweeping changes to almost every aspect of the code
@@ -53,50 +54,6 @@ function Get-Algorithm {
             [array]$available_algorithms += $sneaky_object
         }
     }
-
-
-#    Try{
-        # this block executes if no error - meaning FIPS is not enabled
-        # this won't work in constrainedlanguagemode
-        #New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider | Out-Null
-        
-        <#
-        # this method of array building with custom objects is supported as far back as PowerShell 3
-        # this is not supported in ConstrainedLanguageMode >_<
-        $available_algorithms=@(
-        [PSCustomObject]@{Number = 1; Algorithm = "MD5"},
-        [PSCustomObject]@{Number = 2; Algorithm = "SHA1"},
-        [PSCustomObject]@{Number = 3; Algorithm = "SHA256"},
-        [PSCustomObject]@{Number = 4; Algorithm = "SHA384"},
-        [PSCustomObject]@{Number = 5; Algorithm = "SHA512"}
-        )
-        #>
-        
-        <#
-        $choices = "MD5","SHA1","SHA256","SHA384","SHA512"
-        ForEach($i in $choices){
-            write-host $i
-            $object = New-Object psobject -Property @{
-            Number    = 1
-            Algorithm = $i
-            }
-        $available_algorithms += $object
-        }
-        #>
-
-#    }
-#    Catch{
-        # this block executes if the Try{} block had an error - meaning FIPS is enabled
-
-        <#
-        $available_algorithms=@(
-        [PSCustomObject]@{Number = 1; Algorithm = "SHA1"}, # need to test this
-        [PSCustomObject]@{Number = 2; Algorithm = "SHA256"},
-        [PSCustomObject]@{Number = 3; Algorithm = "SHA384"},
-        [PSCustomObject]@{Number = 4; Algorithm = "SHA512"}
-        )
-        #>
- #   }
     $available_algorithms | Out-Host
 
     Do{
@@ -115,7 +72,6 @@ $path = "C:\Users"
 Clear-Host
 [string]$name = Read-Host "`nEnter name of file to search for"
 $results = Get-ChildItem -Path $path -Recurse -File -Include "*$name*" -ErrorAction SilentlyContinue | Select-Object Length,Name,FullName
-#$results | Out-Host
 
 # this while loop only kicks in if there are no files found by the entered name at the default path
 while($NULL -eq $results){
@@ -151,25 +107,12 @@ while($NULL -eq $results){
         default{ $NULL -eq $results } # start the loop over if one of these options is not selected
     }
 }
-#$results | Out-Host
 
 # now make a list to choose from...because searching "debian" could return multiple debian ISOs
 $list=@()
 [int]$count=0
 $results | ForEach-Object{
     $count++
-
-    <#
-    # constrainedlanguagemode will not allow system.object; need to find replacement
-    $object = New-Object System.Object
-    $object | Add-Member -Type NoteProperty -Name "Number" -Value $count
-    $object | Add-Member -Type NoteProperty -Name "Name" -Value $(Split-Path -Path $_.FullName -Leaf)
-    $object | Add-Member -Type NoteProperty -Name "FullName" -Value $_.FullName
-    $object | Add-Member -Type NoteProperty -Name "Size" -Value $_.Length
-    $object | Add-Member -Type NoteProperty -Name "Path" -Value $(Split-Path -Path $_.FullName)
-    $list += $object
-    #>
-
     $object = New-Object psobject -Property @{
         Number   = $count
         Name     = $(Split-Path -Path $_.FullName -Leaf)
@@ -178,7 +121,6 @@ $results | ForEach-Object{
         Path     = $(Split-Path -Path $_.FullName)
     }
     $list += $object
-
 }
 
 # if only 1 file name match, auto-select it; else (multiple results) call function for menu
@@ -203,26 +145,20 @@ else{ # only 1 result for search; this is our file
     $file_path = $list[$selection-1].Path
 }
 
-# NONE of this [math]:: will work in ConstrainedLanguageMode
-# '{0:0.##}' -f $variable
-# -f means format
 
 # convert file size from bytes to appropriate human-readable output
 if($file_size_in_bytes -ge 1073741824){
     # this is at least 1GB in size
-    #$file_size_in_gb = [math]::Round($($file_size_in_bytes / 1024 / 1024 / 1024),2)
     $file_size_in_gb = '{0:0.##}' -f $(($file_size_in_bytes / 1024 / 1024 / 1024),2)
     Set-Variable -Name file_size -Value "$file_size_in_gb GB"
 }   
 elseif(($file_size_in_bytes -lt 1073741824) -and ($file_size_in_bytes -ge 1048576)){
     # this should be in MB
-    #$file_size_in_mb = [math]::Round($($file_size_in_bytes / 1024 / 1024),2)
     $file_size_in_mb = '{0:0.##}' -f $(($file_size_in_bytes / 1024 / 1024),2)
     Set-Variable -Name file_size -Value "$file_size_in_mb MB"
 }
 elseif(($file_size_in_bytes -lt 1048576) -and ($file_size_in_bytes -ge 1024)){
     # this should be in KB
-    #$file_size_in_kb = [math]::Round($($file_size_in_bytes / 1024),2)
     $file_size_in_kb = '{0:0.##}' -f $(($file_size_in_bytes / 1024),2)
     Set-Variable -Name file_size -Value "$file_size_in_kb KB"
 }
@@ -236,11 +172,6 @@ Write-Host "`nFile selected is: " -NoNewline; Write-Host "$file_name" -Foregroun
 Get-Algorithm
 
 # create a file info table for reporting purposes
-
-# does not work with ConstrainedLanguageMode
-#$file_info=@([PSCustomObject]@{Path = "$file_path"; File = "$file_name"; Size = "$file_size"; Algorithm = $algorithm})
-
-# mostly working but no file size
 $file_info = New-Object psobject -Property @{
     Path      = $file_path
     File      = $file_name
@@ -281,4 +212,3 @@ else{
     Write-Host "Provided hash: $given_hash"
 }
 $file_info | Format-List | Out-Host
-#>
