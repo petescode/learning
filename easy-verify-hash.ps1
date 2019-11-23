@@ -4,20 +4,21 @@ Purpose: Compute a file hash and compare it with a given hash to verify authenti
 Notes:
     - Developed in Windows PowerShell 5.1
     - Get-FileHash requires PowerShell 4.0+
-    - Had to resort to ordered hash tables in lieu of custom objects/arrays
+
+    - Must work in contrained lanugage mode
+      - This has required sweeping changes to almost every aspect of the code
+      - For example, we cannot use:
+        - [PSCustomObject]
+        - New-Object System.Object
+        - [math]::Round()
+      - Had to resort to ordered hash tables in lieu of custom objects/arrays
 
 Development:
 - Still need to do testing on FIPS enabled machine
 - Write a warning when choosing broken algorithms?
-- Still need to see why file selection has "Number" on correct side but algoritm selection does not
-- When just pressing enter to search for file, script gets every file on system (need to make case for NULL)
 
-- Must work in contrained lanugage mode
-    - This has required sweeping changes to almost every aspect of the code
-    - Cannot use:
-        - [PSCustomObject]
-        - New-Object System.Object
-        - [math]::Round()
+- When just pressing enter to search for file, script gets every file on system (need to make case for NULL)
+   - Same case for entering hash provided to you (NULL)
 #>
 
 function Get-Algorithm {
@@ -28,7 +29,7 @@ function Get-Algorithm {
     # check for FIPS here, modify menu options based on result
     $fips_reg = get-itemproperty -path HKLM:\System\CurrentControlSet\Control\Lsa\FipsAlgorithmPolicy\ | Select -Expand Enabled
     if($fips_reg -eq 0){
-        Write-Host "FIPS not enabled`n"
+        #Write-Host "FIPS not enabled`n"
 
         $choices = "MD5","SHA1","SHA256","SHA384","SHA512"
         ForEach($i in $choices){
@@ -42,7 +43,7 @@ function Get-Algorithm {
     }
     else{
         # FIPS registry key is 1 so FIPS is enabled
-        Write-Host "FIPS enabled`n"
+        #Write-Host "FIPS enabled`n"
 
         $choices = "SHA1","SHA256","SHA384","SHA512"
         ForEach($i in $choices){
@@ -92,14 +93,16 @@ while($NULL -eq $results){
             $results = Get-ChildItem -Path $path -Recurse -File -Include "*$name*" -ErrorAction SilentlyContinue | Select-Object Length,Name,FullName
         }
         2{
-            $path = Read-Host "`nEnter search path to start from (default was C:\Users)"
-            
-            # verify the entered path is valid
-            # try while $() -eq $FALSE or $NULL or something to fix entering nothing, THEN do this for testing if the path is actually good
-            while(-Not $(Test-Path $path)){
-                Write-Warning "'$path' does not exist! Try again"
-                $path = Read-Host "`nEnter search path to start from (default was C:\Users)"
-            }
+            Do{
+                Try{ 
+                    [string]$path = Read-Host "`nEnter search path to start from (default was C:\Users)"
+                    $test = Test-Path $path
+                    
+                    if($test -eq $false){ Write-Warning "Path is invalid! Try again" }
+                }
+                Catch{ Write-Warning "Path is null! Try again" } # test-path will error if path is $NULL
+            } Until($test -eq $TRUE)
+
             # run the search again from new, validated search path
             $results = Get-ChildItem -Path $path -Recurse -File -Include "*$name*" -ErrorAction SilentlyContinue | Select-Object Length,Name,FullName
         }
