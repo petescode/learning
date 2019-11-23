@@ -16,7 +16,6 @@ Notes:
 Development:
 - Still need to do testing on FIPS enabled machine
 - Write a warning when choosing broken algorithms?
-
 - When just pressing enter to search for file, script gets every file on system (need to make case for NULL)
    - Same case for entering hash provided to you (NULL)
 #>
@@ -69,9 +68,13 @@ function Get-Algorithm {
 # default path unless user switches it later
 $path = "C:\Users"
 
-# this needs to be a function so we can call it later during switch
+
 Clear-Host
 [string]$name = Read-Host "`nEnter name of file to search for"
+while($name -eq ""){
+    Write-Warning "Name cannot be empty"
+    [string]$name = Read-Host "`nEnter name of file to search for"
+}
 $results = Get-ChildItem -Path $path -Recurse -File -Include "*$name*" -ErrorAction SilentlyContinue | Select-Object Length,Name,FullName
 
 # this while loop only kicks in if there are no files found by the entered name at the default path
@@ -129,6 +132,7 @@ $results | ForEach-Object{
 # if only 1 file name match, auto-select it; else (multiple results) call function for menu
 
 if($list.count -gt 1){ # multiple files match the search; we must choose which one
+    Clear-Host
     $list | Select-Object Number,Name | Out-Host
     [int]$selection=0
     Do{
