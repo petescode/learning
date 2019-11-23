@@ -16,8 +16,7 @@ Notes:
 Development:
 - Still need to do testing on FIPS enabled machine
 - Write a warning when choosing broken algorithms?
-- When just pressing enter to search for file, script gets every file on system (need to make case for NULL)
-   - Same case for entering hash provided to you (NULL)
+- Consistency when entering invalid input (warnings for all messages)
 #>
 
 function Get-Algorithm {
@@ -93,6 +92,10 @@ while($NULL -eq $results){
         1{ 
             Clear-Host
             [string]$name = Read-Host "`nEnter name of file to search for"
+            while($name -eq ""){
+                Write-Warning "Name cannot be empty"
+                [string]$name = Read-Host "`nEnter name of file to search for"
+            }
             $results = Get-ChildItem -Path $path -Recurse -File -Include "*$name*" -ErrorAction SilentlyContinue | Select-Object Length,Name,FullName
         }
         2{
@@ -194,11 +197,9 @@ Write-Host "done" -ForegroundColor Cyan
 
 
 [string]$given_hash = Read-Host "`nEnter hash given to you"
-
-# THIS IS NOT WORKING YET
-while($NULL -eq $given_hash){
+while($given_hash -eq ""){
     Write-Warning "Null value entered! Try again"
-    [string]$given_hash = Read-Host "Enter hash given to you"
+    [string]$given_hash = Read-Host "`nEnter hash given to you"
 }
 
 [string]$given_hash = $given_hash.Trim()
