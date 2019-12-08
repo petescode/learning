@@ -20,6 +20,12 @@ Links:
     
     - https://wiki.python.org/moin/WhileLoop
         Used as reference for while true loop
+    
+    - https://docs.python.org/3/library/hashlib.html
+    - http://pythoncentral.io/hashing-files-with-python/
+        Hashing files in Python
+        Use hashlib.algorithms_guaranteed in addition to
+            hashlib.algorithms_available for better understanding of RIPEMD160
 
 
 DEVELOPMENT:
@@ -33,6 +39,9 @@ import os
 
 # for filename pattern matching when searching for files in a directory
 import fnmatch 
+
+# for hashing
+import hashlib
 
 # if os.name is "nt" it is windows, else if os.name is "posix" it is Linux
 # os.system is used to make system calls to the specific OS
@@ -90,7 +99,11 @@ dir_list.sort(key=str.casefold)
 #    if fnmatch.fnmatch(file, '*.txt'):
 #        print(file)
 
+
+
+# NEEDS REFINING
 # how to make this case insensitive? see test "centos" vs "CentOS"
+# need some input validation on this
 search_param = input("\nEnter pattern to search for:\n")
 print()
 
@@ -122,7 +135,7 @@ for i in list_with_path:
 # here we are also catching ValueErrors (happen when expects int but doesn't get a number)
 while True:
     try:
-        choice = int(input("\nSelect a file: "))
+        choice = int(input("\nMake a selection: "))
     except ValueError:
         #print("Invalid input! Try again.")
         continue
@@ -131,7 +144,128 @@ while True:
     else:
         continue
 
-choice = list_with_path[choice-1]
+file_path = list_with_path[choice-1]
 
-#print(choice)
+#print(file_path)
 clear_screen()
+
+algorithms = ["MD5","SHA1","SHA256","SHA384","SHA512","RIPEMD160"]
+
+print("\nYour file is:\n", file_path)
+print()
+print("   HASH ALGORITHMS   ")
+print("---------------------")
+count = 0
+for i in algorithms:
+    count += 1
+    print(count, i)
+
+
+# NOT WORKING
+# switch statements here
+# https://data-flair.training/blogs/python-switch-case/
+#def switch_algorithms(arg):
+#    switcher = {
+#        1: "MD5",
+#        2: "SHA1",
+#        3: "SHA256",
+#        4: "SHA384",
+#        5: "SHA512",
+#        6: "RIPEMD160"
+#        }
+#    return switcher.get(arg, "Invalid")
+
+#select = input("\nMake a selection: ")
+#switch_algorithms(select)
+
+
+BLOCKSIZE = 65536
+# while true loop keeps looping unless it hits a 'break'
+# this means that only the options presented will be accepted as input
+while True:
+    algorithm = input("\nChoose an algorithm: ")
+
+    if algorithm == '1':
+        chosen_algorithm = "MD5"
+        print("\n\nMD5 hash:")
+        hasher = hashlib.md5()
+        with open(file_path, 'rb') as afile:
+            buf = afile.read(BLOCKSIZE)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = afile.read(BLOCKSIZE)
+            hash_generated = hasher.hexdigest()
+            print("", hash_generated)
+            print()
+            break
+
+    elif algorithm == '2':
+        chosen_algorithm = "SHA1"
+        print("\n\nSHA1 hash:")
+        hasher = hashlib.sha1()
+        with open(file_path, 'rb') as afile:
+            buf = afile.read(BLOCKSIZE)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = afile.read(BLOCKSIZE)
+            hash_generated = hasher.hexdigest()
+            print("", hash_generated)
+            print()
+            break
+
+    elif algorithm == '3':
+        chosen_algorithm = "SHA256"
+        print("\n\nSHA256 hash:")
+        hasher = hashlib.sha256()
+        with open(file_path, 'rb') as afile:
+            buf = afile.read(BLOCKSIZE)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = afile.read(BLOCKSIZE)
+            hash_generated = hasher.hexdigest()
+            print("", hash_generated)
+            print()
+            break
+
+    elif algorithm == '4':
+        chosen_algorithm = "SHA384"
+        print("\n\nSHA384 hash:")
+        hasher = hashlib.sha384()
+        with open(file_path, 'rb') as afile:
+            buf = afile.read(BLOCKSIZE)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = afile.read(BLOCKSIZE)
+            hash_generated = hasher.hexdigest()
+            print("", hash_generated)
+            print()
+            break
+
+    elif algorithm == '5':
+        chosen_algorithm = "SHA512"
+        print("\n\nSHA512 hash:")
+        hasher = hashlib.sha512()
+        with open(file_path, 'rb') as afile:
+            buf = afile.read(BLOCKSIZE)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = afile.read(BLOCKSIZE)
+            hash_generated = hasher.hexdigest()
+            print("", hash_generated)
+            print()
+            break
+
+    # note here how the 'hasher' variable was done differently
+    elif algorithm == '6':
+        chosen_algorithm = "RIPEMD160"
+        print("\n\nRIPEMD160 hash:")
+        hasher = hashlib.new('ripemd160')
+        with open(file_path, 'rb') as afile:
+            buf = afile.read(BLOCKSIZE)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = afile.read(BLOCKSIZE)
+            hash_generated = hasher.hexdigest()
+            print("", hash_generated)
+            print()
+            break
