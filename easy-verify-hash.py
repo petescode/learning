@@ -17,9 +17,14 @@ Links:
     - https://realpython.com/working-with-files-in-python/
     - https://www.geeksforgeeks.org/file-searching-using-python/
         Filename pattern matching and searching
+    
+    - https://wiki.python.org/moin/WhileLoop
+        Used as reference for while true loop
+
 
 DEVELOPMENT:
-    - yea
+    - case insensitive filename pattern matching
+    - how to exclude hidden directories from search?
 '''
 
 # for clearing screen
@@ -85,7 +90,9 @@ dir_list.sort(key=str.casefold)
 #    if fnmatch.fnmatch(file, '*.txt'):
 #        print(file)
 
-search_param = input("\nEnter something to search for:\n")
+# how to make this case insensitive? see test "centos" vs "CentOS"
+search_param = input("\nEnter pattern to search for:\n")
+print()
 
 list_with_path = []
 list_without_path = []
@@ -94,12 +101,37 @@ home_dir = os.path.expanduser('~')
 #for root, dirs, files in os.walk('/home/'):
 for root, dirs, files in os.walk(home_dir):
     for file in files:
-        if fnmatch.fnmatch(file, "*.iso"):
+        #if fnmatch.fnmatch(file, "*.iso"):
+        if fnmatch.fnmatch(file, search_param):
             list_with_path.append(root + '/' + file)
             list_without_path.append(file)
 
-for i in list_with_path:
-    print(i)
+#for i in list_with_path:
+#    print(i)
 
-for i in list_without_path:
-    print(i)
+#for i in list_without_path:
+#    print(i)
+
+count = 0
+for i in list_with_path:
+    count += 1
+    print(count, i)
+
+# with a while True loop, it only breaks if you specify break...
+#   otherwise, it will continue to loop when you say continue
+# here we are also catching ValueErrors (happen when expects int but doesn't get a number)
+while True:
+    try:
+        choice = int(input("\nSelect a file: "))
+    except ValueError:
+        #print("Invalid input! Try again.")
+        continue
+    if(choice > 0 and choice <= (len(list_with_path))):
+        break
+    else:
+        continue
+
+choice = list_with_path[choice-1]
+
+#print(choice)
+clear_screen()
