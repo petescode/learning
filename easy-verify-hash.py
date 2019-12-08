@@ -14,6 +14,10 @@ Links:
     - https://stackoverflow.com/questions/13954841/sort-list-of-strings-ignoring-upper-lower-case
         Sorting list of strings and ignoring case sensitivity, see bottom answers
 
+    - https://realpython.com/working-with-files-in-python/
+    - https://www.geeksforgeeks.org/file-searching-using-python/
+        Filename pattern matching and searching
+
 DEVELOPMENT:
     - yea
 '''
@@ -22,14 +26,15 @@ DEVELOPMENT:
 # for parsing filesystem
 import os
 
+# for filename pattern matching when searching for files in a directory
+import fnmatch 
+
 # if os.name is "nt" it is windows, else if os.name is "posix" it is Linux
 # os.system is used to make system calls to the specific OS
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 clear_screen()
-print("Hello world!\n")
-
 
 # should exclude hidden directories (ones that start with ".")
 def dir_is_hidden(dir):
@@ -53,5 +58,48 @@ for i in home_list:
 # this actually sorts AND writes changes to the list at the same time
 dir_list.sort(key=str.casefold)
 
-for i in dir_list:
+
+#print("\nWhere is the file to be hashed?")
+#print()
+#print("     DIRECTORIES     ")
+#print("---------------------")
+
+#count = 0
+#for i in dir_list:
+#    count += 1
+#    print(count, i)
+
+# need a select/input statement here
+
+
+# INSTEAD, let's just try searching a whole filesystem tree for a filename pattern match
+
+#for file in os.listdir(os.path.expanduser('~')):
+#    if fnmatch.fnmatch(file, '*.txt'):
+#        print(file)
+
+#for i in home_list:
+#    print(i)
+
+#for file in os.listdir('/home/'):
+#    if fnmatch.fnmatch(file, '*.txt'):
+#        print(file)
+
+search_param = input("\nEnter something to search for:\n")
+
+list_with_path = []
+list_without_path = []
+
+home_dir = os.path.expanduser('~')
+#for root, dirs, files in os.walk('/home/'):
+for root, dirs, files in os.walk(home_dir):
+    for file in files:
+        if fnmatch.fnmatch(file, "*.iso"):
+            list_with_path.append(root + '/' + file)
+            list_without_path.append(file)
+
+for i in list_with_path:
+    print(i)
+
+for i in list_without_path:
     print(i)
