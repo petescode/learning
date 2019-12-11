@@ -129,11 +129,24 @@ file_size_kb = round((file_size_bytes / 1024),2)
 file_size_mb = round((file_size_bytes / 1024 / 1024),2)
 file_size_gb = round((file_size_bytes / 1024 / 1024 / 1024),2)
 
-#if file_size_bytes >= 1073741824:
-#    # do something
-#elif file_size_bytes 
+# convert file size from bytes to appropriate human-readable output
+# using format strings to get variable and text string in the same line
 
-#round(file_size_gb, 2)
+if file_size_bytes >= 1073741824:
+    # this is at least 1GB in size
+    file_size = f"{file_size_gb} GB"
+
+elif 1048576 <= file_size_bytes < 1073741824:
+    # this should be in MB
+    file_size = f"{file_size_mb} MB"
+
+elif 1048576 > file_size_bytes >= 1024:
+    # this should be in KB
+    file_size = f"{file_size_kb} KB"
+
+else:
+    file_size = f"{file_size_bytes} Bytes"
+
 
 clear_screen()
 
@@ -256,7 +269,7 @@ if hash_generated == hash_provided:
     print("Provided hash:", hash_provided)
     print("\n\nPath:", file_dir)
     print("File:", file_name)
-    #print("Size:", file_size)
+    print("Size:", file_size)
     print("Algorithm:", chosen_algorithm)
     print("\n")
 else:
@@ -266,6 +279,6 @@ else:
     print("Provided hash:", hash_provided)
     print("\n\nPath:", file_dir)
     print("File:", file_name)
-    #print("Size:", file_size)
+    print("Size:", file_size)
     print("Algorithm:", chosen_algorithm)
     print("\n")
