@@ -73,33 +73,6 @@ for i in home_list:
 dir_list.sort(key=str.casefold)
 
 
-#print("\nWhere is the file to be hashed?")
-#print()
-#print("     DIRECTORIES     ")
-#print("---------------------")
-
-#count = 0
-#for i in dir_list:
-#    count += 1
-#    print(count, i)
-
-# need a select/input statement here
-
-
-# INSTEAD, let's just try searching a whole filesystem tree for a filename pattern match
-
-#for file in os.listdir(os.path.expanduser('~')):
-#    if fnmatch.fnmatch(file, '*.txt'):
-#        print(file)
-
-#for i in home_list:
-#    print(i)
-
-#for file in os.listdir('/home/'):
-#    if fnmatch.fnmatch(file, '*.txt'):
-#        print(file)
-
-
 
 # NEEDS REFINING
 # how to make this case insensitive? see test "centos" vs "CentOS"
@@ -147,7 +120,20 @@ while True:
 file_with_path = list_with_path[choice-1]
 
 # declare two variables at once (results of the os.path.split() operation)
-file_path, file_name = os.path.split(file_with_path)
+file_dir, file_name = os.path.split(file_with_path)
+file_dir = file_dir + "/"
+
+# get size of file and round to 2 decimal places
+file_size_bytes = os.path.getsize(file_with_path)
+file_size_kb = round((file_size_bytes / 1024),2)
+file_size_mb = round((file_size_bytes / 1024 / 1024),2)
+file_size_gb = round((file_size_bytes / 1024 / 1024 / 1024),2)
+
+#if file_size_bytes >= 1073741824:
+#    # do something
+#elif file_size_bytes 
+
+#round(file_size_gb, 2)
 
 clear_screen()
 
@@ -161,24 +147,6 @@ count = 0
 for i in algorithms:
     count += 1
     print(count, i)
-
-
-# NOT WORKING
-# switch statements here
-# https://data-flair.training/blogs/python-switch-case/
-#def switch_algorithms(arg):
-#    switcher = {
-#        1: "MD5",
-#        2: "SHA1",
-#        3: "SHA256",
-#        4: "SHA384",
-#        5: "SHA512",
-#        6: "RIPEMD160"
-#        }
-#    return switcher.get(arg, "Invalid")
-
-#select = input("\nMake a selection: ")
-#switch_algorithms(select)
 
 
 BLOCKSIZE = 65536
@@ -272,17 +240,13 @@ while True:
             print()
             break
 
-hash_provided = input("Enter the hash you were provided: ").lower().strip()
-
-clear_screen()
 
 # hashes are often provided in all caps
 # .strip() strips out whitespaces ONLY on either side of the string
 # this prevents false mismatch due to user input error
-#hash_provided = hash_provided.lower().strip()
+hash_provided = input("Enter the hash you were provided: ").lower().strip()
 
-#print("True hash: ", hash_generated)
-#print("Provided hash: ", hash_provided)
+clear_screen()
 
 # some if logic to do the comparisons here
 if hash_generated == hash_provided:
@@ -290,14 +254,18 @@ if hash_generated == hash_provided:
     print("____________________________________________________")
     print("Compiled hash:", hash_generated)
     print("Provided hash:", hash_provided)
-    print("\n\nYour algorithm was:", chosen_algorithm)
-    print("Your file was:", file_with_path)
+    print("\n\nPath:", file_dir)
+    print("File:", file_name)
+    #print("Size:", file_size)
+    print("Algorithm:", chosen_algorithm)
     print("\n")
 else:
-    print("\nCheck FAILED: Hashes do NOT match!")
+    print("\nCheck FAILED: Hashes DO NOT match!")
     print("____________________________________________________")
     print("Compiled hash:", hash_generated)
     print("Provided hash:", hash_provided)
-    print("\n\nYour algorithm was:", chosen_algorithm)
-    print("Your file was:", file_with_path)
+    print("\n\nPath:", file_dir)
+    print("File:", file_name)
+    #print("Size:", file_size)
+    print("Algorithm:", chosen_algorithm)
     print("\n")
