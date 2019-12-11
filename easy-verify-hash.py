@@ -269,3 +269,33 @@ while True:
             print("", hash_generated)
             print()
             break
+
+hash_provided = input("Enter the hash you were provided: ")
+
+clear_screen()
+
+# hashes are often provided in all caps
+# .strip() strips out whitespaces ONLY on either side of the string
+# this prevents false mismatch due to user input error
+hash_provided = hash_provided.lower().strip()
+
+#print("True hash: ", hash_generated)
+#print("Provided hash: ", hash_provided)
+
+# some if logic to do the comparisons here
+if hash_generated == hash_provided:
+    print("\nCheck SUCCEEDED: Hashes match!")
+    print("____________________________________________________")
+    print("Compiled hash:", hash_generated)
+    print("Provided hash:", hash_provided)
+    print("\n\nYour algorithm was:", chosen_algorithm)
+    print("Your file was:", file_path)
+    print("\n")
+else:
+    print("\nCheck FAILED: Hashes do NOT match!")
+    print("____________________________________________________")
+    print("Compiled hash:", hash_generated)
+    print("Provided hash:", hash_provided)
+    print("\n\nYour algorithm was:", chosen_algorithm)
+    print("Your file was:", file_path)
+    print("\n")
