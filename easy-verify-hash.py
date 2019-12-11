@@ -144,14 +144,16 @@ while True:
     else:
         continue
 
-file_path = list_with_path[choice-1]
+file_with_path = list_with_path[choice-1]
 
-#print(file_path)
+# declare two variables at once (results of the os.path.split() operation)
+file_path, file_name = os.path.split(file_with_path)
+
 clear_screen()
 
 algorithms = ["MD5","SHA1","SHA256","SHA384","SHA512","RIPEMD160"]
 
-print("\nYour file is:\n", file_path)
+print("\nYour file is:\n", file_with_path)
 print()
 print("   HASH ALGORITHMS   ")
 print("---------------------")
@@ -189,7 +191,7 @@ while True:
         chosen_algorithm = "MD5"
         print("\n\nMD5 hash:")
         hasher = hashlib.md5()
-        with open(file_path, 'rb') as afile:
+        with open(file_with_path, 'rb') as afile:
             buf = afile.read(BLOCKSIZE)
             while len(buf) > 0:
                 hasher.update(buf)
@@ -203,7 +205,7 @@ while True:
         chosen_algorithm = "SHA1"
         print("\n\nSHA1 hash:")
         hasher = hashlib.sha1()
-        with open(file_path, 'rb') as afile:
+        with open(file_with_path, 'rb') as afile:
             buf = afile.read(BLOCKSIZE)
             while len(buf) > 0:
                 hasher.update(buf)
@@ -217,7 +219,7 @@ while True:
         chosen_algorithm = "SHA256"
         print("\n\nSHA256 hash:")
         hasher = hashlib.sha256()
-        with open(file_path, 'rb') as afile:
+        with open(file_with_path, 'rb') as afile:
             buf = afile.read(BLOCKSIZE)
             while len(buf) > 0:
                 hasher.update(buf)
@@ -231,7 +233,7 @@ while True:
         chosen_algorithm = "SHA384"
         print("\n\nSHA384 hash:")
         hasher = hashlib.sha384()
-        with open(file_path, 'rb') as afile:
+        with open(file_with_path, 'rb') as afile:
             buf = afile.read(BLOCKSIZE)
             while len(buf) > 0:
                 hasher.update(buf)
@@ -245,7 +247,7 @@ while True:
         chosen_algorithm = "SHA512"
         print("\n\nSHA512 hash:")
         hasher = hashlib.sha512()
-        with open(file_path, 'rb') as afile:
+        with open(file_with_path, 'rb') as afile:
             buf = afile.read(BLOCKSIZE)
             while len(buf) > 0:
                 hasher.update(buf)
@@ -260,7 +262,7 @@ while True:
         chosen_algorithm = "RIPEMD160"
         print("\n\nRIPEMD160 hash:")
         hasher = hashlib.new('ripemd160')
-        with open(file_path, 'rb') as afile:
+        with open(file_with_path, 'rb') as afile:
             buf = afile.read(BLOCKSIZE)
             while len(buf) > 0:
                 hasher.update(buf)
@@ -270,14 +272,14 @@ while True:
             print()
             break
 
-hash_provided = input("Enter the hash you were provided: ")
+hash_provided = input("Enter the hash you were provided: ").lower().strip()
 
 clear_screen()
 
 # hashes are often provided in all caps
 # .strip() strips out whitespaces ONLY on either side of the string
 # this prevents false mismatch due to user input error
-hash_provided = hash_provided.lower().strip()
+#hash_provided = hash_provided.lower().strip()
 
 #print("True hash: ", hash_generated)
 #print("Provided hash: ", hash_provided)
@@ -289,7 +291,7 @@ if hash_generated == hash_provided:
     print("Compiled hash:", hash_generated)
     print("Provided hash:", hash_provided)
     print("\n\nYour algorithm was:", chosen_algorithm)
-    print("Your file was:", file_path)
+    print("Your file was:", file_with_path)
     print("\n")
 else:
     print("\nCheck FAILED: Hashes do NOT match!")
@@ -297,5 +299,5 @@ else:
     print("Compiled hash:", hash_generated)
     print("Provided hash:", hash_provided)
     print("\n\nYour algorithm was:", chosen_algorithm)
-    print("Your file was:", file_path)
+    print("Your file was:", file_with_path)
     print("\n")
