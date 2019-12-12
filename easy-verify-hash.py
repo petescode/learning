@@ -4,8 +4,10 @@ Purpose: Calculate a file's hash, then compare it to a given hash to verify inte
 Notes:
     - This is a learning program - comments will be verbose!
     - Developed in Python 3.7
-    - Designed to work on both Linux and Windows
+    - Designing this to work on both Linux and Windows - not tested on Windows at this time
     - Using "i" for "item" in for loops regardless of list name
+    - Searching for files is case-sensitive and literal (not wildcarded on either side of search);
+        this is expected behavior for *nix, but is different than the ps1 version of this script
 
 Links:
     - https://stackoverflow.com/questions/7099290/how-to-ignore-hidden-files-using-os-listdir
@@ -30,18 +32,13 @@ Links:
 
 DEVELOPMENT:
     - case insensitive filename pattern matching
-    - how to exclude hidden directories from search?
+    - input validation for "enter pattern..." (including when nothing is entered)
+    - how to exclude hidden directories from search? 
 '''
 
-# for clearing screen
-# for parsing filesystem
-import os
-
-# for filename pattern matching when searching for files in a directory
-import fnmatch 
-
-# for hashing
-import hashlib
+import os       # for clearing screen, parsing filesystem
+import fnmatch  # for filename pattern matching when searching for files in a directory
+import hashlib  # for hashing
 
 # if os.name is "nt" it is windows, else if os.name is "posix" it is Linux
 # os.system is used to make system calls to the specific OS
@@ -54,7 +51,7 @@ clear_screen()
 def dir_is_hidden(dir):
     return dir.startswith(".")
 
-# get list (array-like thing in python) of directories (to parse later for the file to hash)
+# get list of directories (to parse later for the file to hash)
 # os.path.expanduser is best here because it will use environment variables to get the user's home directory, regardless of lin/win
 home_list = os.listdir(os.path.expanduser('~'))
 
@@ -64,7 +61,6 @@ dir_list = []
 # for each item in home_list, ignore if dir is hidden, else (if not hidden) add the item to our new list
 for i in home_list:
     if(dir_is_hidden(i)):
-        #print(i)
         pass
     else:
         dir_list.append(i)
@@ -80,23 +76,24 @@ dir_list.sort(key=str.casefold)
 search_param = input("\nEnter pattern to search for:\n")
 print()
 
+
+#if search_param and search_param.isspace():
+#    # string not empty
+#    print("string is not empty")
+#else:
+#    # string is empty
+#    print("string is empty")
+
+
 list_with_path = []
 list_without_path = []
 
 home_dir = os.path.expanduser('~')
-#for root, dirs, files in os.walk('/home/'):
 for root, dirs, files in os.walk(home_dir):
     for file in files:
-        #if fnmatch.fnmatch(file, "*.iso"):
         if fnmatch.fnmatch(file, search_param):
             list_with_path.append(root + '/' + file)
             list_without_path.append(file)
-
-#for i in list_with_path:
-#    print(i)
-
-#for i in list_without_path:
-#    print(i)
 
 count = 0
 for i in list_with_path:
@@ -130,8 +127,7 @@ file_size_mb = round((file_size_bytes / 1024 / 1024),2)
 file_size_gb = round((file_size_bytes / 1024 / 1024 / 1024),2)
 
 # convert file size from bytes to appropriate human-readable output
-# using format strings to get variable and text string in the same line
-
+# using f-strings to get variable and text string in the same line
 if file_size_bytes >= 1073741824:
     # this is at least 1GB in size
     file_size = f"{file_size_gb} GB"
@@ -261,24 +257,23 @@ hash_provided = input("Enter the hash you were provided: ").lower().strip()
 
 clear_screen()
 
-# some if logic to do the comparisons here
 if hash_generated == hash_provided:
     print("\nCheck SUCCEEDED: Hashes match!")
     print("____________________________________________________")
     print("Compiled hash:", hash_generated)
     print("Provided hash:", hash_provided)
-    print("\n\nPath:", file_dir)
-    print("File:", file_name)
-    print("Size:", file_size)
-    print("Algorithm:", chosen_algorithm)
+    print("\n\nAlgorithm: ", chosen_algorithm)
+    print("Path:      ", file_dir)
+    print("File:      ", file_name)
+    print("Size:      ", file_size)
     print("\n")
 else:
     print("\nCheck FAILED: Hashes DO NOT match!")
     print("____________________________________________________")
     print("Compiled hash:", hash_generated)
     print("Provided hash:", hash_provided)
-    print("\n\nPath:", file_dir)
-    print("File:", file_name)
-    print("Size:", file_size)
-    print("Algorithm:", chosen_algorithm)
+    print("\n\nAlgorithm: ", chosen_algorithm)
+    print("Path:      ", file_dir)
+    print("File:      ", file_name)
+    print("Size:      ", file_size)
     print("\n")
